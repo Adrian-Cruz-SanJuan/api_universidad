@@ -1,34 +1,68 @@
-import web
-import app
-import json
-import csv
+import web  # pip install web.py
+import csv  # CSV parser
+import json  # json parser
 
-render = web.template.render('application/controllers/')   #En esta no se ocupa
+'''
+    Controller Alumnos que es invocado cuando el usuario ingrese a la
+    URL: http://localhost:8080/alumnos?action=get&token=1234
+'''
+
 
 class Alumnos:
+
+    app_version = "0.03"  # version de la webapp
+    file = 'static/csv/alumnos.csv'  # define el archivo donde se almacenan los datos
+
+    def __init__(self):  # Método inicial o constructor de la clase
+        pass  # Simplemente continua con la ejecución
+
     def GET(self):
         try:
-            datos=web.input()
-            if datos['token']=="1234":
-                result=[]
-                result2={}
-                if datos['action']=="get":
-                    with open('static/csv/alumnos.csv','r') as csvfile:
-                        reader = csv.DictReader(csvfile)
-                        for row in reader:
-                            result.append(row)
-                            result2['status']="200 OK"
-                            result2['alumnos']=result
-                    return json.dumps(result2)
+            data = web.input()  # recibe los datos por la url
+            if data['token'] == "1234":  # valida el token que se recibe por url
+                if data['action'] == 'get':  # evalua la acción a realizar
+                    result = self.actionGet(self.app_version, self.file)  # llama al metodo actionGet(), y almacena el resultado
+                    return json.dumps(result)  # Parsea el diccionario result a formato json
                 else:
-                    result2={}
-                    result2['status']="Command not found"
-                    return json.dumps(result2)
+                    result = {}  # crear diccionario vacio
+                    result['app_version'] = self.app_version  # version de la webapp
+                    result['status'] = "Command not found"
+                    return json.dumps(result)  # Parsea el diccionario result a formato json
             else:
-                result={}
-                result['status']="Los datos insertados son incorrectos"
-                return json.dumps(result)
-        except Exception:
-            result={}
-            result['status']="Faltan valores por insertar"
-            return json.dumps(result)
+                result = {}  # crear diccionario vacio
+                result['app_version'] = self.app_version  # version de la webapp
+                result['status'] = "Invalid Token"
+                return json.dumps(result)  # Parsea el diccionario result a formato json
+        except Exception as e:
+            #print("Error" + str(e.args()))
+            result = {}  # crear diccionario vacio
+            result['app_version'] = self.app_version  # version de la webapp
+            result['status'] = "Values missing, sintaxis: alumnos?action=get&token=XXXX"
+            return json.dumps(result)  # Parsea el diccionario result a formato json
+
+    @staticmethod
+    def actionGet(app_version, file):
+        try:
+            result = {}  # crear diccionario vacio
+            result['app_version'] = app_version  # version de la webapp
+            result['status'] = "200 ok"  # mensaje de status
+
+            with open(file, 'r') as csvfile:  # abre el archivo en modo lectura
+                reader = csv.DictReader(csvfile)  # toma la 1er fila para los nombres
+                alumnos = []  # array para almacenar todos los alumnos
+                for row in reader:  # recorre el archivo CSV fila por fila
+                    fila = {}  # Genera un diccionario por cada registro en el csv
+                    fila['matricula'] = row['matricula']  # obtiene la matricula y la agrega al diccionario
+                    fila['nombre'] = row['nombre']  # optione el nombre y lo agrega al diccionario
+                    fila['primer_apellido'] = row['primer_apellido']  # optiene el primer_apellido
+                    fila['segundo_apellido'] = row['segundo_apellido']  # optiene el segundo apellido
+                    fila['carrera'] = row['carrera']  # obtiene la carrera
+                    alumnos.append(fila)  # agrega el diccionario generado al array alumnos
+                result['alumnos'] = alumnos  # agrega el array alumnos al diccionario result
+            return result  # Regresa el diccionario generado
+        except Exception as e:
+            result = {}  # crear diccionario vacio
+            #print("Error {}".format(e.args()))
+            result['app_version'] = app_version  # version de la webapp
+            result['status'] = "Error "  # mensaje de status
+            return result  # Regresa el diccionario generado
