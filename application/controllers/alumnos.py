@@ -18,6 +18,7 @@ class Alumnos:
                         for row in reader:
                             result.append(row)
                             result2['status']="200 OK"
+                            result2['appVersion']="1.0.1"
                             result2['alumnos']=result
                     return json.dumps(result2)
                 else:
