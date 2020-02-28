@@ -6,5 +6,6 @@ Esta aplicacion web permite mediante la URL acceder a informacion almacenada en 
 los datos son formateados a json
 
 ## Acciones
-get - obtener todos los registros 
+get - obtener todos los registros
+search - obtener un dato especifico  
 put - insertar un nuevo registro
